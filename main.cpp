@@ -10,15 +10,14 @@
 perceptron* perc;
 using namespace std;
 
-
-
 void openFile(string str, float**& x, int*& targs, int& N);
+void getData(vector<vector<vector<float>>>& data);
 
 int* targs_train;
 int* targs_test;
 float** emg_test;
 float** emg_train;
-vector<vector<vector<float>>> data_l_inp;//[classes][samples][channels]
+vector<vector<vector<float>>> data_learn;//[classes][samples][channels]
 vector<vector<float>> classes;
 int N_test,N_train;
 int chans[3]={3,6,7};
@@ -37,24 +36,19 @@ int main(int argc, char *argv[])
     perc=new perceptron(constr);
 
 
-    //data_l_inp.resize(hist1.N2+hist2.N2);
-    data_l_inp.resize(7);
+    data_learn.resize(7);
 
-    int cnt=0;
     for(int j=0;j<(N_train);j++)
     {
         cnt++;
         hist1.increment(emg_train[0][j],emg_train[1][j]);
         hist2.increment(emg_train[0][j],emg_train[2][j]);
-//        if(cnt==10)
-        {
 
-            cnt=0;
-            vector<float> vv=hist1.b;
-            vv.insert(vv.end(),hist2.b.begin(),hist2.b.end());
-            cout<<vv.size()<<endl;
-            data_l_inp[targs_train[j]-1].push_back(vv);
-        }
+        vector<float> vv=hist1.b;
+        vv.insert(vv.end(),hist2.b.begin(),hist2.b.end());
+        cout<<vv.size()<<endl;
+        data_learn[targs_train[j]-1].push_back(vv);
+
     }
     //    vector<float> aa, bb;
     //    aa.push_back(1);
@@ -66,19 +60,28 @@ int main(int argc, char *argv[])
     //    cout<<aa[3];
     int class_i;
     for (int i=0;i<7;i++)
-        cout<<data_l_inp[i].size()<<endl;
+        cout<<data_learn[i].size()<<endl;
 
-    int indent=200;
+    int indent=800;
     int sample_i;
-    for(int k=0;k<30000;k++)
+    for(int k=0;k<300000;k++)
     {
         class_i=rand()%7;
         vector<float> targs_v;
-        sample_i=k%(data_l_inp[class_i].size()-indent)+indent;
+        sample_i=rand()%(data_learn[class_i].size()-indent)+indent;
         targs_v.resize(7);
         targs_v[class_i]=1;
-        perc->learn1(data_l_inp[class_i][sample_i],targs_v);
+        perc->learn1(data_learn[class_i][sample_i],targs_v);
     }
+
+    for(int k=0;k<100;k++)
+    {
+        class_i=rand()%7;
+        sample_i=(rand()%(data_learn[class_i].size()-indent-1))+indent;
+        perc->refresh(data_learn[class_i][sample_i]);
+        cout<<class_i<<"    "<<perc->getMaxInd()<<endl;
+    }
+
 
 
 }
